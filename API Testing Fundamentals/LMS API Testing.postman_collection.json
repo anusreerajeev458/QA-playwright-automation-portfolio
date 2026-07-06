@@ -1,3 +1,4 @@
+This document/collection is intended for basic API testing practice and demonstrates the fundamental HTTP methods used in REST APIs: GET, POST, PUT, PATCH, and DELETE. It serves as a foundational exercise to understand API requests, responses, status codes, headers, request bodies, and basic validation before progressing to a comprehensive LMS API testing project that includes authentication, variables, request chaining, assertions, data-driven testing, environment management, and other advanced Postman features.
 {
   "info": {
     "_postman_id": "634900c3-f5f8-4edc-b6aa-9574ddd14a98",
