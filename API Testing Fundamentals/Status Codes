@@ -1,0 +1,618 @@
+{
+  "info": {
+    "_postman_id": "e5f5e5b7-2755-4e55-a4c0-b7c65d3cc89f",
+    "name": "US-004: Search Courses Collection",
+    "description": "Postman Collection covering all API test cases for US-004 Search Courses including Collection Runner Data-Driven testing and Sequential E2E Request Chaining.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52761576",
+    "_collection_link": "https://go.postman.co/collection/52761576-e5f5e5b7-2755-4e55-a4c0-b7c65d3cc89f?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. Data-Driven Validations",
+      "item": [
+        {
+          "name": "GET /courses/search [DDT Negative & Security Runner]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 1. Read values directly from your CSV iteration data",
+                  "const expectedStatus = Number(pm.iterationData.get(\"expectedStatus\")) || 200;",
+                  "const expectedMessage = pm.iterationData.get(\"expectedMessage\");",
+                  "",
+                  "// 2. Validate HTTP Status Code (Will check for 200 based on your CSV)",
+                  "pm.test(`Status Code is ${expectedStatus}`, function () {",
+                  "    pm.response.to.have.status(expectedStatus);",
+                  "});",
+                  "",
+                  "// 3. Validate Response Payload",
+                  "pm.test(\"Response contains expected message and empty data\", function () {",
+                  "    const res = pm.response.json();",
+                  "",
+                  "    // Check message (e.g., \"No Courses Found\")",
+                  "    if (expectedMessage) {",
+                  "        pm.expect(res.message).to.include(expectedMessage);",
+                  "    }",
+                  "",
+                  "    // Check that success flag is true (since status is 200)",
+                  "    pm.expect(res.success).to.be.true;",
+                  "",
+                  "    // Verify courses list is empty",
+                  "    if (res.data && Array.isArray(res.data.courses)) {",
+                  "        pm.expect(res.data.courses).to.be.an('array').that.is.empty;",
+                  "    } else if (res.data && Array.isArray(res.data)) {",
+                  "        pm.expect(res.data).to.be.an('array').that.is.empty;",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/course-api/courses/search?query=nonexistent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "course-api",
+                "courses",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "nonexistent"
+                }
+              ]
+            },
+            "description": "TC-005: Data-driven negative search queries."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /courses/search [Method Constraint Validation]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC-006: POST Method rejected with 405 Method Not Allowed\", function () {",
+                  "    pm.response.to.have.status(405);",
+                  "    pm.expect(pm.response.json().message).to.include(\"Use GET\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/course-api/courses/search?query=Python",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "course-api",
+                "courses",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "Python"
+                }
+              ]
+            },
+            "description": "TC-006: Verify HTTP method constraints."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /courses/search [Missing/Invalid Auth Header Check]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC-007: Missing/Malformed Bearer token rejected with 401 Unauthorized\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "    pm.expect(pm.response.json().message).to.include(\"Unauthorized\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/course-api/courses/search?keyword=Python",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "course-api",
+                "courses",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "Python"
+                }
+              ]
+            },
+            "description": "TC-007: Verify authentication enforcement."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /courses/search [SQL Injection Protection]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC-008: SQL Injection safely handled without database errors\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    let res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/courses/search?query=Python' OR '1'='1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "Python' OR '1'='1"
+                }
+              ]
+            },
+            "description": "TC-008: Verify security handling under SQLi payloads."
+          },
+          "response": []
+        }
+      ],
+      "description": "Folder 1: Designed to run via Postman Collection Runner using search_inputs.csv file.",
+      "auth": {
+        "type": "noauth"
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Sequential E2E Flow",
+      "item": [
+        {
+          "name": "Student Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {\r",
+                  "    pm.expect(pm.response.code).to.eql(200);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response time is less than 2000ms\", function () {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Validate the response schema for 'data' object\", function () {\r",
+                  "    const responseData = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(responseData).to.be.an('object');\r",
+                  "    pm.expect(responseData).to.have.property('data').that.is.an('object');\r",
+                  "    \r",
+                  "    const data = responseData.data;\r",
+                  "    pm.expect(data).to.have.property('token').that.is.a('string');\r",
+                  "    pm.expect(data).to.have.property('redirectTo').that.is.a('string');\r",
+                  "    pm.expect(data).to.have.property('student').that.is.an('object');\r",
+                  "\r",
+                  "    const student = data.student;\r",
+                  "    pm.expect(student).to.have.property('id').that.is.a('string');\r",
+                  "    pm.expect(student).to.have.property('fullName').that.is.a('string');\r",
+                  "    pm.expect(student).to.have.property('email').that.is.a('string').and.matches(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/, \"Email format is invalid\");\r",
+                  "    pm.expect(student).to.have.property('isActive').that.is.a('boolean');\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Token is a non-empty string\", function () {\r",
+                  "    const responseData = pm.response.json();\r",
+                  "    \r",
+                  "    pm.expect(responseData).to.have.property('data');\r",
+                  "    pm.expect(responseData.data).to.have.property('token').that.is.a('string').and.to.have.lengthOf.at.least(1, \"Token should not be empty\");\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Student object contains required fields\", function () {\r",
+                  "    const responseData = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(responseData).to.be.an('object');\r",
+                  "    pm.expect(responseData.data).to.exist.and.to.be.an('object');\r",
+                  "    pm.expect(responseData.data.student).to.exist.and.to.be.an('object');\r",
+                  "\r",
+                  "    pm.expect(responseData.data.student).to.have.all.keys('id', 'fullName', 'email', 'isActive');\r",
+                  "});\r",
+                  "var responseData = pm.response.json();\r",
+                  "\r",
+                  "// Save the token to collection variables\r",
+                  "pm.test(\"Save token to collection variables\", function () {\r",
+                  "    pm.expect(responseData).to.have.property('data');\r",
+                  "    pm.expect(responseData.data).to.have.property('token').that.is.a('string').and.to.have.lengthOf.at.least(1, \"Token should not be empty\");\r",
+                  "    pm.collectionVariables.set(\"authToken\", responseData.data.token);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"test11.lms@mailinator.com\",\"password\":\"Aabr12jjjrc@\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/student-api/students/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "student-api",
+                "students",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /courses/search [Valid Keyword & Extract Course ID]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC-001: Valid Search returns 200 OK & Matches Schema Structure\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    let res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data).to.be.an('array').that.is.not.empty;",
+                  "",
+                  "    // Schema Validation (Course ID, Title, Category, Instructor)",
+                  "    let firstCourse = res.data[0];",
+                  "    pm.expect(firstCourse).to.have.all.keys('courseId', 'title', 'category', 'instructor');",
+                  "",
+                  "    // Request Chaining: Save Course ID to collection variable",
+                  "    pm.collectionVariables.set(\"first_course_id\", firstCourse.courseId);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/courses/search?query=Python",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "Python"
+                }
+              ]
+            },
+            "description": "TC-001: Valid keyword search and variable extraction."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /courses/search [Partial, Minimal & Space Trim Checks]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC-002: Trims whitespace and matches partial term 'Py'\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    let res = pm.response.json();",
+                  "    pm.expect(res.data).to.be.an('array').that.is.not.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/courses/search?query=  Py  ",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "  Py  "
+                }
+              ]
+            },
+            "description": "TC-002: Partial and whitespace trimming checks."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /courses/search [Unrelated Appended Text]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC-003: Appended noise text yields no results safely\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    let res = pm.response.json();",
+                  "    pm.expect(res.data).to.be.an('array').that.is.empty;",
+                  "    pm.expect(res.message).to.equal(\"No Courses Found\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/courses/search?query=Pythonxyz123Unrelated",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "Pythonxyz123Unrelated"
+                }
+              ]
+            },
+            "description": "TC-003: Keyword with trailing noise text."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /courses/search [Empty Keyword Boundary]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC-004: Empty Query returns default catalog or validation response\", function () {",
+                  "    pm.expect([200, 422]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/courses/search?query=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "TC-004: Blank query parameter boundary test."
+          },
+          "response": []
+        }
+      ],
+      "description": "Folder 2: Designed to run sequentially from top to bottom without an external CSV file."
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://bhcqzbkgzrvrxrvsyufx.supabase.co/functions/v1/student-api"
+    },
+    {
+      "key": "first_course_id",
+      "value": ""
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    }
+  ]
+}
